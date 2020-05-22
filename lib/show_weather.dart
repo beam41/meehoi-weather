@@ -2,10 +2,12 @@ import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
-import 'package:meehoiweather/model/weather.dart';
+
+import 'model/weather.dart';
 
 class _ShowWeatherState extends State<ShowWeather> {
   Future<Weather> futureData;
+  String cityId = "";
 
   @override
   void initState() {
@@ -15,7 +17,7 @@ class _ShowWeatherState extends State<ShowWeather> {
 
   Future<Weather> fetchWeather() async {
     final response =
-        await http.get('http://www.mocky.io/v2/5ec68bcb3200007900d74f43');
+        await http.get("api.openweathermap.org/data/2.5/weather?id=$cityId&appid={your api key}");
 
     if (response.statusCode == 200) {
       return Weather.fromJson(json.decode(response.body));
