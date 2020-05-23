@@ -1,82 +1,92 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:http/http.dart' as http;
+
 import 'models/city.dart';
 import 'show_weather.dart';
 
 class _CityListState extends State<CityList> {
-  Future<List<City>> _cityData;
-  String _filterStr = "";
+  List<City> _cityData;
+  String _searchString = "";
+  bool _fetching = true;
 
   @override
   void initState() {
     super.initState();
-    DefaultAssetBundle.of(context).loadString("assets/city.list.min.json").then(
-      (value) {
+    setState(() {
+      _fetching = true;
+    });
+    _fetchCity().then((value) {
+      // prevent late data
+      if (_searchString == value['str']) {
+        _cityData = value['array'];
         setState(() {
-          _cityData = compute(_fetchCity, value);
-        });
-      },
-    );
+        _fetching = false;
+      });
+      }
+    });
   }
 
-  static List<City> _fetchCity(rawData) {
-    var jsonData = json.decode(rawData);
-    List<City> cityArr = [];
-    for (final city in jsonData) {
-      var ci = City.fromJson(city);
-      if (ci.state == "") {
-        ci.combiName = "${ci.name}, ${ci.country}";
-      } else {
-        ci.combiName = "${ci.name}, ${ci.state}, ${ci.country}";
+  Future<Map> _fetchCity() async {
+    final search = _searchString;
+    final response = await http.get(
+      "https://mee-weather.azurewebsites.net/api/GetCityList?code=${DotEnv().env['AZURE_KEY']}&q=$search",
+    );
+    if (response.statusCode == 200) {
+      var js = json.decode(response.body);
+      List<City> cityArr = [];
+      for (final city in js) {
+        cityArr.add(City.fromJson(city));
       }
-
-      cityArr.add(ci);
+      return {'str': search, 'array': cityArr};
+    } else if (response.statusCode == 403) {
+      return {'str': search, 'array': new List<City>()};
+    } else {
+      throw Exception('Failed to load API');
     }
-    cityArr.sort((a, b) => a.combiName.compareTo(b.combiName));
-    return cityArr;
+  }
+
+  Widget _listBuilder() {
+    if (!_fetching) {
+      if (_cityData.length > 0) {
+        return Scrollbar(
+          child: ListView.builder(
+            padding: EdgeInsets.only(left: 16.0),
+            itemCount: _cityData.length,
+            itemBuilder: (BuildContext listContext, int index) {
+              return ListTile(
+                title: Text(_cityData[index].name),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ShowWeather(
+                        _cityData[index].id,
+                        _cityData[index].name,
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        );
+      }
+      return Text(
+        "Try Searching${_searchString.length > 0 ? ' again' : '!'}",
+        style: TextStyle(color: Colors.grey),
+      );
+    }
+    // By default, show a loading spinner.
+    return CircularProgressIndicator();
   }
 
   Widget _buildList() => Expanded(
         child: Center(
-          child: FutureBuilder<List<City>>(
-            future: _cityData,
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                List<City> data = snapshot.data
-                    .where((element) => element.combiName.contains(_filterStr))
-                    .toList();
-                return Scrollbar(
-                  child: ListView.builder(
-                    padding: EdgeInsets.only(left: 16.0),
-                    itemCount: data.length,
-                    itemBuilder: (BuildContext listContext, int index) {
-                      return ListTile(
-                        title: Text(data[index].combiName),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ShowWeather(
-                                data[index].id,
-                                data[index].combiName,
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                );
-              } else if (snapshot.hasError) {
-                return Text("${snapshot.error}");
-              }
-              // By default, show a loading spinner.
-              return CircularProgressIndicator();
-            },
-          ),
+          child: _listBuilder(),
         ),
       );
 
@@ -98,8 +108,18 @@ class _CityListState extends State<CityList> {
           cursorColor: Colors.grey[900],
           textInputAction: TextInputAction.search,
           onChanged: (text) {
+            _searchString = text;
             setState(() {
-              _filterStr = text;
+              _fetching = true;
+            });
+            _fetchCity().then((value) {
+              // prevent late data
+              if (_searchString == value['str']) {
+                _cityData = value['array'];
+                setState(() {
+                  _fetching = false;
+                });
+              }
             });
           },
         ),
