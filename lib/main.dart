@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'show_weather.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'city_list.dart';
 
-void main() {
+Future main() async {
+  await DotEnv().load('.env');
   runApp(MyApp());
 }
 
@@ -13,12 +14,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: "Meehoi Weather",
-        home: CityList(),
-        theme: ThemeData(
-          primaryColor: Colors.white,
-          accentColor: Colors.grey,
-          accentColorBrightness: Brightness.light,
-        ));
+      title: "Meehoi Weather",
+      home: CityList(),
+      theme: ThemeData(
+        primaryColor: Colors.white,
+        accentColor: Colors.grey,
+        accentColorBrightness: Brightness.light,
+      ),
+    );
   }
 }
