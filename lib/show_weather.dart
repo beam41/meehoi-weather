@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -167,32 +168,40 @@ class _ShowWeatherState extends State<ShowWeather> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: AnimatedContainer(
-        duration: const Duration(milliseconds: 500),
-        color: _groupIdColors(_weatherId),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Center(
-              child: FutureBuilder<Weather>(
-                future: _futureData,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    return _drawMain(snapshot.data);
-                  } else if (snapshot.hasError) {
-                    return Text(
-                      "${snapshot.error}",
-                      style: const TextStyle(color: Colors.white),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarBrightness: Brightness.light,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: _groupIdColors(_weatherId),
+        systemNavigationBarIconBrightness: Brightness.light,
+      ),
+      child: Scaffold(
+        body: AnimatedContainer(
+          duration: const Duration(milliseconds: 500),
+          color: _groupIdColors(_weatherId),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Center(
+                child: FutureBuilder<Weather>(
+                  future: _futureData,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return _drawMain(snapshot.data);
+                    } else if (snapshot.hasError) {
+                      return Text(
+                        "${snapshot.error}",
+                        style: const TextStyle(color: Colors.white),
+                      );
+                    }
+                    // By default, show a loading spinner.
+                    return CircularProgressIndicator(
+                      backgroundColor: Color.fromRGBO(0, 0, 0, 0),
+                      valueColor:
+                          const AlwaysStoppedAnimation<Color>(Colors.white),
                     );
-                  }
-                  // By default, show a loading spinner.
-                  return CircularProgressIndicator(
-                    backgroundColor: Color.fromRGBO(0, 0, 0, 0),
-                    valueColor:
-                        const AlwaysStoppedAnimation<Color>(Colors.white),
-                  );
-                },
+                  },
+                ),
               ),
             ),
           ),

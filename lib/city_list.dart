@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -12,6 +13,7 @@ class _CityListState extends State<CityList> {
   List<City> _cityData;
   String _searchString = "";
   bool _fetching = true;
+  int _contentLength = 0;
 
   @override
   void initState() {
@@ -23,9 +25,17 @@ class _CityListState extends State<CityList> {
       // prevent late data
       if (_searchString == value['str']) {
         _cityData = value['array'];
-        setState(() {
-          _fetching = false;
-        });
+        if (value['contentLength'] != null) {
+          setState(() {
+            _contentLength = value['contentLength'];
+            _fetching = false;
+          });
+        } else {
+          setState(() {
+            _contentLength = 0;
+            _fetching = false;
+          });
+        }
       }
     });
   }
@@ -43,6 +53,13 @@ class _CityListState extends State<CityList> {
       }
       return {'str': search, 'array': cityArr};
     } else if (response.statusCode == 403) {
+      if (response.body.length > 0) {
+        return {
+          'str': search,
+          'array': new List<City>(),
+          'contentLength': json.decode(response.body)['contentLength'],
+        };
+      }
       return {'str': search, 'array': new List<City>()};
     } else {
       throw Exception('Failed to load API');
@@ -73,6 +90,12 @@ class _CityListState extends State<CityList> {
               );
             },
           ),
+        );
+      }
+      if (_contentLength != 0) {
+        return Text(
+          "Too much city (current result: $_contentLength items)",
+          style: const TextStyle(color: Colors.grey),
         );
       }
       return Text(
@@ -116,9 +139,17 @@ class _CityListState extends State<CityList> {
               // prevent late data
               if (_searchString == value['str']) {
                 _cityData = value['array'];
-                setState(() {
-                  _fetching = false;
-                });
+                if (value['contentLength'] != null) {
+                  setState(() {
+                    _contentLength = value['contentLength'];
+                    _fetching = false;
+                  });
+                } else {
+                  setState(() {
+                    _contentLength = 0;
+                    _fetching = false;
+                  });
+                }
               }
             });
           },
@@ -127,12 +158,21 @@ class _CityListState extends State<CityList> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("City"),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.dark,
       ),
-      body: Column(
-        children: <Widget>[_buildSearch(), _buildList()],
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text("City"),
+        ),
+        body: Column(
+          children: <Widget>[
+            _buildSearch(),
+            _buildList(),
+          ],
+        ),
       ),
     );
   }
