@@ -15,12 +15,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: "Meehoi Weather",
-      home: CityList(),
       theme: ThemeData(
         primaryColor: Colors.white,
         accentColor: Colors.grey,
         accentColorBrightness: Brightness.light,
       ),
+      home: CityList(),
     );
   }
 }

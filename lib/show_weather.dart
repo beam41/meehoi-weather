@@ -8,10 +8,13 @@ import 'package:intl/intl.dart';
 
 import 'models/weather.dart';
 import 'extensions/capitalize.dart';
+import 'spinner_reload.dart';
 
 class _ShowWeatherState extends State<ShowWeather> {
   Future<Weather> _futureData;
   int _weatherId;
+  bool _fetching = false;
+  var _currTime = DateTime.now();
 
   @override
   void initState() {
@@ -27,6 +30,8 @@ class _ShowWeatherState extends State<ShowWeather> {
       var js = json.decode(response.body);
       setState(() {
         _weatherId = js['weather'][0]['id'];
+        _currTime = DateTime.now();
+        _fetching = false;
       });
       return Weather.fromApiJson(js);
     } else {
@@ -68,6 +73,7 @@ class _ShowWeatherState extends State<ShowWeather> {
     if (id < 700) {
       return Colors.lightBlue[600];
     }
+    return Colors.blue;
   }
 
   Widget _drawMain(data) {
@@ -80,10 +86,10 @@ class _ShowWeatherState extends State<ShowWeather> {
           mainAxisSize: MainAxisSize.max,
           children: <Widget>[
             Padding(
-              padding: EdgeInsets.only(bottom: 20),
+              padding: const EdgeInsets.only(bottom: 20),
               child: Text(
                 widget.cityNameText,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 25,
                   color: Colors.white,
                 ),
@@ -94,7 +100,7 @@ class _ShowWeatherState extends State<ShowWeather> {
               children: <Widget>[
                 Text(
                   "${data.temp}",
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 200,
                     letterSpacing: -5,
                     height: 1,
@@ -103,7 +109,7 @@ class _ShowWeatherState extends State<ShowWeather> {
                 ),
                 Text(
                   "°C",
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 50,
                     height: 1.4,
                     color: Colors.white,
@@ -113,24 +119,45 @@ class _ShowWeatherState extends State<ShowWeather> {
             ),
             Text(
               "${data.desc}".capitalize(),
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 30,
                 color: Colors.white,
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(vertical: 10),
+              padding: const EdgeInsets.symmetric(vertical: 10),
               child: Text(
                 "Humidity: ${data.humidity}%",
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 20,
                   color: Colors.white,
                 ),
               ),
             ),
-            Text(
-              "updated at: ${DateFormat('d/M/yyyy h:mm').format(DateTime.fromMillisecondsSinceEpoch(data.time * 1000))}",
-              style: TextStyle(color: Colors.white),
+            Transform.translate(
+              offset: const Offset(5.0, 0.0),
+              child: FlatButton(
+                padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 5),
+                onPressed: () {
+                  setState(() {
+                    _fetching = true;
+                    _futureData = _fetchWeather();
+                  });
+                },
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.only(right: 5),
+                      child: SpinnerReload(_fetching),
+                    ),
+                    Text(
+                      "updated at: ${DateFormat('d/M/yyyy h:mm').format(_currTime)}",
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -142,11 +169,11 @@ class _ShowWeatherState extends State<ShowWeather> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: AnimatedContainer(
-        duration: Duration(milliseconds: 500),
+        duration: const Duration(milliseconds: 500),
         color: _groupIdColors(_weatherId),
         child: SafeArea(
           child: Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Center(
               child: FutureBuilder<Weather>(
                 future: _futureData,
@@ -154,12 +181,16 @@ class _ShowWeatherState extends State<ShowWeather> {
                   if (snapshot.hasData) {
                     return _drawMain(snapshot.data);
                   } else if (snapshot.hasError) {
-                    return Text("${snapshot.error}");
+                    return Text(
+                      "${snapshot.error}",
+                      style: const TextStyle(color: Colors.white),
+                    );
                   }
                   // By default, show a loading spinner.
                   return CircularProgressIndicator(
                     backgroundColor: Color.fromRGBO(0, 0, 0, 0),
-                    valueColor: new AlwaysStoppedAnimation<Color>(Colors.white),
+                    valueColor:
+                        const AlwaysStoppedAnimation<Color>(Colors.white),
                   );
                 },
               ),

@@ -24,8 +24,8 @@ class _CityListState extends State<CityList> {
       if (_searchString == value['str']) {
         _cityData = value['array'];
         setState(() {
-        _fetching = false;
-      });
+          _fetching = false;
+        });
       }
     });
   }
@@ -54,7 +54,7 @@ class _CityListState extends State<CityList> {
       if (_cityData.length > 0) {
         return Scrollbar(
           child: ListView.builder(
-            padding: EdgeInsets.only(left: 16.0),
+            padding: const EdgeInsets.only(left: 16.0),
             itemCount: _cityData.length,
             itemBuilder: (BuildContext listContext, int index) {
               return ListTile(
@@ -77,7 +77,7 @@ class _CityListState extends State<CityList> {
       }
       return Text(
         "Try Searching${_searchString.length > 0 ? ' again' : '!'}",
-        style: TextStyle(color: Colors.grey),
+        style: const TextStyle(color: Colors.grey),
       );
     }
     // By default, show a loading spinner.
@@ -91,7 +91,7 @@ class _CityListState extends State<CityList> {
       );
 
   Widget _buildSearch() => Padding(
-        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
         child: TextField(
           decoration: InputDecoration(
             enabledBorder: OutlineInputBorder(
@@ -103,7 +103,7 @@ class _CityListState extends State<CityList> {
             labelText: 'Search',
             labelStyle: TextStyle(color: Colors.grey[700]),
             isDense: true,
-            contentPadding: EdgeInsets.all(10),
+            contentPadding: const EdgeInsets.all(10),
           ),
           cursorColor: Colors.grey[900],
           textInputAction: TextInputAction.search,
