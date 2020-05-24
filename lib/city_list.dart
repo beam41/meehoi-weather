@@ -162,7 +162,7 @@ class _CityListState extends State<CityList> {
       value: const SystemUiOverlayStyle(
         statusBarBrightness: Brightness.dark,
         statusBarIconBrightness: Brightness.dark,
-        systemNavigationBarColor: Colors.white,
+        systemNavigationBarColor: const Color.fromRGBO(250, 250, 250, 1),
         systemNavigationBarIconBrightness: Brightness.dark,
         systemNavigationBarDividerColor: const Color.fromRGBO(0, 0, 0, 0),
       ),
