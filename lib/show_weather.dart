@@ -174,6 +174,7 @@ class _ShowWeatherState extends State<ShowWeather> {
         statusBarIconBrightness: Brightness.light,
         systemNavigationBarColor: _groupIdColors(_weatherId),
         systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarDividerColor: const Color.fromRGBO(0, 0, 0, 0),
       ),
       child: Scaffold(
         body: AnimatedContainer(
@@ -196,7 +197,7 @@ class _ShowWeatherState extends State<ShowWeather> {
                     }
                     // By default, show a loading spinner.
                     return CircularProgressIndicator(
-                      backgroundColor: Color.fromRGBO(0, 0, 0, 0),
+                      backgroundColor: const Color.fromRGBO(0, 0, 0, 0),
                       valueColor:
                           const AlwaysStoppedAnimation<Color>(Colors.white),
                     );

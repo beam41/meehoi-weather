@@ -160,8 +160,11 @@ class _CityListState extends State<CityList> {
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
+        statusBarBrightness: Brightness.dark,
+        statusBarIconBrightness: Brightness.dark,
         systemNavigationBarColor: Colors.white,
         systemNavigationBarIconBrightness: Brightness.dark,
+        systemNavigationBarDividerColor: const Color.fromRGBO(0, 0, 0, 0),
       ),
       child: Scaffold(
         appBar: AppBar(
